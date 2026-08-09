@@ -14,19 +14,22 @@ from app.memory import (
 from app.interview import get_question
 from app.feedback import generate_feedback
 
+
 app = FastAPI(
     title="AI Interview Agent",
     version="1.0.0",
     description="ABTalks AI Interview Agent"
 )
 
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 MAX_QUESTIONS = 8
 

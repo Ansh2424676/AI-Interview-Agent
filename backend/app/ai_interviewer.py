@@ -1,12 +1,19 @@
 import os
+
 from ollama import Client
 from app.candidate import build_candidate_profile
+
+
+OLLAMA_API_KEY = os.getenv("OLLAMA_API_KEY")
+
+if not OLLAMA_API_KEY:
+    raise RuntimeError("OLLAMA_API_KEY is not configured")
 
 
 client = Client(
     host="https://ollama.com",
     headers={
-        "Authorization": f"Bearer {os.environ.get('OLLAMA_API_KEY')}"
+        "Authorization": f"Bearer {OLLAMA_API_KEY}"
     }
 )
 
@@ -36,7 +43,7 @@ Question:
 """
 
     response = client.chat(
-        model="llama3.2:3b",
+        model="gpt-oss:20b",
         messages=[
             {
                 "role": "user",

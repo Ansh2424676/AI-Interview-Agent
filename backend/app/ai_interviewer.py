@@ -1,5 +1,15 @@
-from ollama import chat
+import os
+from ollama import Client
 from app.candidate import build_candidate_profile
+
+
+client = Client(
+    host="https://ollama.com",
+    headers={
+        "Authorization": f"Bearer {os.environ.get('OLLAMA_API_KEY')}"
+    }
+)
+
 
 def generate_ai_question(session):
 
@@ -25,7 +35,7 @@ Do not number it.
 Question:
 """
 
-    response = chat(
+    response = client.chat(
         model="llama3.2:3b",
         messages=[
             {

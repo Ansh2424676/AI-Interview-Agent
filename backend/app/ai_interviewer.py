@@ -1,48 +1,61 @@
 import os
-from ollama import Client
-
-from app.candidate import build_candidate_profile
+import requests
 
 
-client = Client(
-    host="https://ollama.com",
-    headers={
-        "Authorization": f"Bearer {os.getenv('OLLAMA_API_KEY')}"
-    }
-)
+OLLAMA_API_KEY = os.getenv("OLLAMA_API_KEY")
+
+if not OLLAMA_API_KEY:
+    raise RuntimeError("OLLAMA_API_KEY is not configured")
 
 
 def generate_ai_question(session):
+    current_question = session.get("current_question", 1)
 
-    profile = build_candidate_profile(session["candidate"])
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "You are a professional technical interviewer. "
+                "Conduct a realistic AI engineering interview. "
+                "Ask one clear technical question at a time. "
+                "Use the candidate's previous answers to create relevant "
+                "follow-up questions."
+            ),
+        },
+        {
+            "role": "user",
+            "content": f"""
+This is question number {current_question}.
 
-    previous_answers = "\n".join(session["answers"])
+Candidate interview session:
+{session}
 
-    prompt = f"""
-You are an expert technical interviewer.
+Generate the next technical interview question.
 
-Candidate Profile:
-{profile}
+Return ONLY the question text.
+""",
+        },
+    ]
 
-Previous Answers:
-{previous_answers}
-
-Ask ONE interview question only.
-
-Do not explain.
-Do not number it.
-
-Question:
-"""
-
-    response = client.chat(
-        model="gpt-oss:20b",
-        messages=[
-            {
-                "role": "user",
-                "content": prompt
-            }
-        ]
+    response = requests.post(
+        "https://ollama.com/api/chat",
+        headers={
+            "Authorization": f"Bearer {OLLAMA_API_KEY}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "model": "gpt-oss:20b",
+            "messages": messages,
+            "stream": False,
+        },
+        timeout=90,
     )
 
-    return response["message"]["content"]
+    if response.status_code != 200:
+        raise RuntimeError(
+            f"Ollama API Error {response.status_code}: {response.text}"
+        )
+
+    data = response.json()
+
+    return data["message"]["content"].strip()

@@ -4,18 +4,17 @@ from app.candidate import build_candidate_profile
 
 
 def get_ollama_client():
-
     api_key = os.getenv("OLLAMA_API_KEY")
 
-    if api_key:
-        return Client(
-            host="https://ollama.com",
-            headers={
-                "Authorization": f"Bearer {api_key}"
-            }
-        )
+    if not api_key:
+        raise RuntimeError("OLLAMA_API_KEY is not set on the server")
 
-    return Client(host="http://localhost:11434")
+    return Client(
+        host="https://ollama.com",
+        headers={
+            "Authorization": f"Bearer {api_key}"
+        }
+    )
 
 
 def generate_ai_question(session):
@@ -50,7 +49,7 @@ Question:
     client = get_ollama_client()
 
     response = client.chat(
-        model="gpt-oss:20b",
+        model="gpt-oss:20b-cloud",
         messages=[
             {
                 "role": "user",
@@ -60,7 +59,10 @@ Question:
     )
 
     return response["message"]["content"]
+
+
 def get_question(index=0):
+
     questions = [
         "Tell me about yourself and briefly describe the most important AI or technical project you built during the cohort."
     ]
